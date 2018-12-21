@@ -28,6 +28,7 @@ const rawBodyBuffer = (req, res, buf, encoding) => {
 app.use(bodyParser.urlencoded({verify: rawBodyBuffer, extended: true }));
 app.use(bodyParser.json({ verify: rawBodyBuffer }));
 
+// Default response for base GET request
 app.get('/', (req, res) => {
   res.send('<h2>The Slash Command and Dialog app is running</h2> <p>Follow the' +
   ' instructions in the README to configure the Slack App and your environment variables.</p>');
@@ -43,24 +44,26 @@ app.post('/command', (req, res) => {
   
   // Verify the signing secret
   if (signature.isVerified(req)) {
-    // Respons to Data
+    // Response to Data
     if (req.body.text !== null) {
       // Match the message to a desired action
       switch (message.parseMessageAction(req.body.text)) {
         case 'help':
+          // If help action return help information
           runHelp(req.body.channel_id, req.body.user_id);
           break;
         case 'question':
+          // If question action search the PD space of confluence
           confluence.search(req.body.text, req.body.channel_id, req.body.user_id, 'PD', 0);
           break;
         case 'documentation':
+          // If documentation action search the TECH space of confluence
           confluence.search(req.body.text, req.body.channel_id, req.body.user_id, 'TECH', 0);
           break;
       }
     }
-    //console.log('body is');
-    //console.log(req.body);
   } else {
+    // Not a valid request origin and deny confluence response
     debug('Verification token mismatch');
     res.sendStatus(404);
   }

@@ -9,13 +9,14 @@ const apiUrl = 'https://slack.com/api';
  *  Gets a result from Atlassian confluence search results
  */
 const search = (req_message, channel, user, confluenceSpace, resultOffset) => {
+  // Retrieve the keywords part of the slack message
   const keyword = message.parseMessageKeywords(req_message);
-  const confluenceType = 'page';
+  const confluenceType = 'page'; // Set the type of confluence content to search
   // Build a query string for searching
   const confluenceCli = 'siteSearch+~+"' + keyword + '"+and+space+=+"' 
     + confluenceSpace + '"+and+type+=+"' + confluenceType + '"';
 
-  // Do get request to atlassian search api
+  // Do GET request to atlassian search api for just one top result
   // Example: https://domain.atlassian.net/wiki/rest/api/search?cql=siteSearch+~+%22timesheet%22+and+space+%3D+%22PD%22+and+type+%3D+%22page%22&queryString=timesheet&start=0&limit=1
   axios({
     method:'get',
