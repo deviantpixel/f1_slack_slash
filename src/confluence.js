@@ -37,19 +37,24 @@ const search = (req_message, channel, user, confluenceSpace, resultOffset) => {
     // If we get a response item back from atlassian
     if (typeof response.data.results[0] !== 'undefined') {
       // Build the response message for the first and only response content
-      help_message = 'I found: ```' + response.data.results[0].content.title 
-        + '\n' + response.data._links.base + response.data.results[0].url
-        + '```';
+      help_message = 'I found: ' 
+        + '<' + response.data._links.base + response.data.results[0].url
+        + '|' + response.data.results[0].content.title + '>.'
+        + '\nYou may also '
+        + '<' + process.env.CONFLUENCE_API_URL + '/wiki/dosearchsite.action?cli='
+        + confluenceCli + '&amp;queryString=' + keyword
+        + '|' + 'view all confluence results>.';
     }
     // Else no results found message
     else {
-      help_message = 'I didn\'t find anything but you can have a look here:\n'
-        + process.env.CONFLUENCE_API_URL + '/wiki/dosearchsite.action?cli='
-        + confluenceCli + '&amp;queryString=' + keyword;
+      help_message = 'I didn\'t find anything but you can '
+        + '<' + process.env.CONFLUENCE_API_URL + '/wiki/dosearchsite.action?cli='
+        + confluenceCli + '&amp;queryString=' + keyword
+        + '|' + 'view all confluence results>';
     }
 
     // Construct parameters needed for a result message post
-    const params = {
+    var params = {
       token: process.env.SLACK_ACCESS_TOKEN,
       icon_emoji: ':forumone:',
       channel: channel,
@@ -61,10 +66,8 @@ const search = (req_message, channel, user, confluenceSpace, resultOffset) => {
     axios.post(`${apiUrl}/chat.postEphemeral`, qs.stringify(params))
       .then((result) => {
         debug('chat.postEphemeral: %o', result.data);
-        res.send('');
       }).catch((err) => {
         debug('chat.postEphemeral call failed: %o', err);
-        res.sendStatus(500);
       });
   
   }).catch(function (error) {

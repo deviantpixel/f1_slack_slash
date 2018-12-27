@@ -44,21 +44,25 @@ app.post('/command', (req, res) => {
   
   // Verify the signing secret
   if (signature.isVerified(req)) {
+    // immediately respond with a empty 200 response to let
+    // Slack know the command was received
+    res.send('');
+
     // Response to Data
     if (req.body.text !== null) {
       // Match the message to a desired action
       switch (message.parseMessageAction(req.body.text)) {
-        case 'help':
-          // If help action return help information
-          runHelp(req.body.channel_id, req.body.user_id);
-          break;
-        case 'question':
+        case 'quest':
           // If question action search the PD space of confluence
           confluence.search(req.body.text, req.body.channel_id, req.body.user_id, 'PD', 0);
           break;
-        case 'documentation':
-          // If documentation action search the TECH space of confluence
+        case 'tech':
+          // If tech action search the TECH space of confluence
           confluence.search(req.body.text, req.body.channel_id, req.body.user_id, 'TECH', 0);
+          break;
+        default:
+          // If help action return help information
+          runHelp(req.body.channel_id, req.body.user_id);
           break;
       }
     }
@@ -71,24 +75,21 @@ app.post('/command', (req, res) => {
 
 // Show Help Text
 function runHelp(channel, user) {
-  // TODO: Add better help message
   // Construct parameters needed for a help message post
   const params = {
     token: process.env.SLACK_ACCESS_TOKEN,
     icon_emoji: ':forumone:',
     channel: channel,
     user: user,
-    text: `Type /f1help followed by a request like 'question where is dev documentation', and I will try to find an answer.`
+    text: `Type /f1help followed by a request like 'quest (or tech) [keywords] (ex: how do I submit timesheets)', and I will try to find an answer.`
   };
 
   // Post the actual help message to Slack
   axios.post(`${apiUrl}/chat.postEphemeral`, qs.stringify(params))
     .then((result) => {
       debug('chat.postEphemeral: %o', result.data);
-      res.send('');
     }).catch((err) => {
       debug('chat.postEphemeral call failed: %o', err);
-      res.sendStatus(500);
     });
 }
 
